@@ -168,8 +168,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  moveSpeed: 5
-  jumpForce: 8
+  moveSpeed: 6
+  jumpForce: 6
   tnt: {fileID: 3719010595133654731}
   rb: {fileID: 7598728216923438464}
   isSpectator: 0
