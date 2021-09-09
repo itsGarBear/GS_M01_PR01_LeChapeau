@@ -17,9 +17,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     public string playerPrefabLocation;
     public Transform[] spawnPoints;
     public PlayerController[] players;
+    public List<PlayerController> activePlayers;
     public int playerWithTNT;
     private int playersInGame;
-    public int playersAlive;
 
     public static GameManager instance;
 
@@ -63,17 +63,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         PlayerController playerScript = playerObj.GetComponent<PlayerController>();
 
-        playerScript.photonView.RPC("Initialize", RpcTarget.All, PhotonNetwork.LocalPlayer);
-
-        foreach (PlayerController p in players)
-        {
-            if (!p.isSpectator)
-                playersAlive++;
-
-            print("Players alive: " + playersAlive);
-
-            GameUI.instance.MakeSpectatorsUI();
-        }
+        playerScript.photonView.RPC("Initialize", RpcTarget.All, PhotonNetwork.LocalPlayer);        
     }
 
     public PlayerController GetPlayer (int playerID)
@@ -89,7 +79,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     public void GiveTNT(int playerID, bool initialGive)
     {
         if (!initialGive)
+        {
             GetPlayer(playerWithTNT).SetTNT(false);
+        }
 
         playerWithTNT = playerID;
         GetPlayer(playerID).SetTNT(true);
@@ -114,18 +106,31 @@ public class GameManager : MonoBehaviourPunCallbacks
         Invoke("GoBackToMenu", 3.0f);
     }
 
+    [PunRPC]
     void EliminatePlayer(int playerID)
     {
         PlayerController player = GetPlayer(playerID);
-        foreach(PlayerController p in players)
+        activePlayers.Remove(player);
+
+        activePlayers.OrderBy(x => x.id);
+        player.transform.position = new Vector3(50f, -50f, 50f);
+        player.rb.isKinematic = true;
+        player.GetComponent<TNTController>().enabled = false;
+
+        if (activePlayers.Count == 1)
         {
-            if(p.GetComponent<TNTController>().enabled == true)
-            {
-                p.isSpectator = true;
-                p.gameObject.SetActive(false);
-            }
+            gameEnded = true;
+            photonView.RPC("WinGame", RpcTarget.All, activePlayers[0].id);
+            return;
         }
-        NetworkManager.instance.ChangeScene("Game");
+
+        
+        GameUI.instance.timeSlider.value = GameManager.instance.timeToWin;
+
+        photonView.RPC("GiveTNT", RpcTarget.All, activePlayers[0].id, false);
+
+        print(activePlayers.Count);
+        
     }
 
     void GoBackToMenu()

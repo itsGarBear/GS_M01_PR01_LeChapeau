@@ -4,7 +4,7 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class PlayerController : MonoBehaviourPunCallbacks //IPunObservable
+public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
     [HideInInspector]
     public int id;
@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviourPunCallbacks //IPunObservable
     [Header("Spectator")]
     public bool isSpectator = false;
 
+
     [PunRPC]
     public void Initialize(Player player)
     {
@@ -31,13 +32,12 @@ public class PlayerController : MonoBehaviourPunCallbacks //IPunObservable
         id = player.ActorNumber;
 
         GameManager.instance.players[id - 1] = this;
+        GameManager.instance.activePlayers.Add(this);
 
         GetComponent<Renderer>().material = GameUI.instance.playerContainers[id - 1].colorDenoter;
 
-        if(isSpectator)
-            gameObject.GetComponent<BoxCollider>().enabled = false;
-
-        GameManager.instance.GiveTNT(GameManager.instance.players[0].id, true);
+        if(id == 1)
+            GameManager.instance.GiveTNT(id, true);
 
         if (!photonView.IsMine)
             rb.isKinematic = true;
@@ -48,13 +48,13 @@ public class PlayerController : MonoBehaviourPunCallbacks //IPunObservable
     {
         if(PhotonNetwork.IsMasterClient)
         {
-            if(0 >= GameManager.instance.timeToWin && !GameManager.instance.gameEnded)
+            if(GameUI.instance.timeSlider.value <= 0 && !GameManager.instance.gameEnded)
             {
-                GameManager.instance.gameEnded = true;
-                if(GameManager.instance.playersAlive > 1)
-                    GameManager.instance.photonView.RPC("EliminatePlayer", RpcTarget.All, id);
-                else
-                    GameManager.instance.photonView.RPC("WinGame", RpcTarget.All, id); //IS THE ID PART WRONG need to be a diff id?
+                if (GameManager.instance.activePlayers.Count != 1)
+                {
+                    GameManager.instance.photonView.RPC("EliminatePlayer", RpcTarget.All, GameManager.instance.playerWithTNT);
+                    //GameManager.instance.photonView.RPC("GiveTNT", RpcTarget.AllViaServer, GameManager.instance.activePlayers[0].id, false);
+                }                
             }
         }
 
@@ -104,7 +104,7 @@ public class PlayerController : MonoBehaviourPunCallbacks //IPunObservable
         if (!photonView.IsMine)
             return;
 
-        if(!isSpectator && collision.gameObject.CompareTag("Player"))
+        if(collision.gameObject.CompareTag("Player"))
         {
             if(GameManager.instance.GetPlayer(collision.gameObject).id == GameManager.instance.playerWithTNT)
             {
@@ -116,16 +116,16 @@ public class PlayerController : MonoBehaviourPunCallbacks //IPunObservable
         }
     }
 
-    //public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    //{
-    //    if (stream.IsWriting)
-    //    {
-    //        //stream.SendNext(currHatTime);
-    //    }
-    //    else if (stream.IsReading)
-    //    {
-    //        //currHatTime = (float)stream.ReceiveNext();
-    //    }
-    //}
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            //stream.SendNext(currHatTime);
+        }
+        else if (stream.IsReading)
+        {
+            //currHatTime = (float)stream.ReceiveNext();
+        }
+    }
 }
 

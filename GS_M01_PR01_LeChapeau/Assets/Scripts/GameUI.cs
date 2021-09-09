@@ -18,12 +18,7 @@ public class GameUI : MonoBehaviour
 
     private void Awake()
     {
-        if (instance != null && instance != this)
-            gameObject.SetActive(false);
-        else
-        {
-            instance = this;
-        }
+        instance = this;
     }
     private void Start()
     {
@@ -61,23 +56,26 @@ public class GameUI : MonoBehaviour
         //        playerContainers[i].hatTimeSlider.value = GameManager.instance.players[i].currHatTime;
         //}
     }
-    public void MakeSpectatorsUI()
-    {
-        for (int i = 0; i < playerContainers.Length; ++i)
-        {
-            PlayerUIContainer container = playerContainers[i];
+    //public void MakeSpectatorsUI()
+    //{
+    //    for (int i = 0; i < playerContainers.Length; ++i)
+    //    {
+    //        PlayerUIContainer container = playerContainers[i];
 
-            if (i < PhotonNetwork.PlayerList.Length)
-            {
-                print(PhotonNetwork.PlayerList.Length);
-                print(GameManager.instance.players.Length);
-                if (GameManager.instance.players[i].isSpectator)
-                {
-                    container.nameText.faceColor = spectatorMat.color;
-                }
-            }
-        }
-    }
+    //        if (i < PhotonNetwork.PlayerList.Length)
+    //        {
+    //            print("playerlist: " + PhotonNetwork.PlayerList.Length);
+    //            print("player length: " + GameManager.instance.players.Length);
+    //            print("i: " + i);
+    //            print(GameManager.instance);
+    //            print(GameManager.instance.players[i]);
+    //            if (GameManager.instance.players[i] != null && GameManager.instance.players[i].isSpectator)
+    //            {
+    //                container.nameText.faceColor = spectatorMat.color;
+    //            }
+    //        }
+    //    }
+    //}
 
     public void SetWinText(string winnerName)
     {
@@ -85,16 +83,16 @@ public class GameUI : MonoBehaviour
         winText.text = winnerName + " wins!";
     }
 
-    public void SetInactive(int playerID)
-    {
-        foreach(PlayerController p in GameManager.instance.players)
-        {
-            if(p.id == playerID)
-            {
-                p.isSpectator = true;
-            }
-        }
-    }
+    //public void SetInactive(int playerID)
+    //{
+    //    foreach(PlayerController p in GameManager.instance.players)
+    //    {
+    //        if(p.id == playerID)
+    //        {
+    //            p.isSpectator = true;
+    //        }
+    //    }
+    //}
 }
 
 [System.Serializable]
